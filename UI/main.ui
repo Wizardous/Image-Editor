@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>752</width>
+    <height>633</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Image Editor</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLabel" name="img_label">
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>752</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen_Image"/>
+    <addaction name="actionSave_Image"/>
+    <addaction name="actionDiscard_Changes_2"/>
+    <addaction name="separator"/>
+    <addaction name="actionFit_Image"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit_2"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <widget class="QMenu" name="menuColor">
+     <property name="title">
+      <string>Color</string>
+     </property>
+     <addaction name="actionGreyScale"/>
+     <addaction name="actionColored"/>
+    </widget>
+    <widget class="QMenu" name="menuPerspective">
+     <property name="title">
+      <string>Perspective</string>
+     </property>
+     <addaction name="actionVertical"/>
+     <addaction name="actionHorizontal"/>
+     <addaction name="separator"/>
+     <addaction name="actionIncrease"/>
+     <addaction name="actionDecrease"/>
+    </widget>
+    <widget class="QMenu" name="menuRotate">
+     <property name="title">
+      <string>Rotate</string>
+     </property>
+     <addaction name="actionClockwise"/>
+     <addaction name="actionAnti_Clockwise"/>
+    </widget>
+    <widget class="QMenu" name="menuBorder">
+     <property name="title">
+      <string>Border</string>
+     </property>
+     <widget class="QMenu" name="menuSize">
+      <property name="title">
+       <string>Size</string>
+      </property>
+      <addaction name="action10_px"/>
+      <addaction name="action20_px"/>
+      <addaction name="action50_px"/>
+      <addaction name="action100_px"/>
+     </widget>
+     <addaction name="menuSize"/>
+     <addaction name="separator"/>
+     <addaction name="actionLeft_side"/>
+     <addaction name="actionRight_Side"/>
+     <addaction name="actionTop"/>
+     <addaction name="actionBottom"/>
+    </widget>
+    <widget class="QMenu" name="menuScale">
+     <property name="title">
+      <string>Scale</string>
+     </property>
+     <addaction name="actionScale_up"/>
+     <addaction name="actionScale_Down"/>
+    </widget>
+    <addaction name="menuColor"/>
+    <addaction name="menuRotate"/>
+    <addaction name="menuPerspective"/>
+    <addaction name="menuBorder"/>
+    <addaction name="menuScale"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionOpen_Image">
+   <property name="text">
+    <string>Open Image</string>
+   </property>
+  </action>
+  <action name="actionSave_Image">
+   <property name="text">
+    <string>Save Image</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionGreyScale">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>GreyScale</string>
+   </property>
+  </action>
+  <action name="actionColored">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Colored</string>
+   </property>
+  </action>
+  <action name="actionVertical">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Vertical</string>
+   </property>
+  </action>
+  <action name="actionHorizontal">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Horizontal</string>
+   </property>
+  </action>
+  <action name="actionDiscard_Changes">
+   <property name="text">
+    <string>Discard Changes</string>
+   </property>
+  </action>
+  <action name="actionDiscard_Changes_2">
+   <property name="text">
+    <string>Discard Changes</string>
+   </property>
+  </action>
+  <action name="actionFit_Image">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Fit Image</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionClockwise">
+   <property name="text">
+    <string>Clockwise 10 Degree</string>
+   </property>
+  </action>
+  <action name="actionAnti_Clockwise">
+   <property name="text">
+    <string>Anti-Clockwise 10 Degree</string>
+   </property>
+  </action>
+  <action name="actionIncrease">
+   <property name="text">
+    <string>Increase</string>
+   </property>
+  </action>
+  <action name="actionDecrease">
+   <property name="text">
+    <string>Decrease</string>
+   </property>
+  </action>
+  <action name="action10_px">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>10 px</string>
+   </property>
+  </action>
+  <action name="action20_px">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>20 px</string>
+   </property>
+  </action>
+  <action name="action50_px">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>50 px</string>
+   </property>
+  </action>
+  <action name="action100_px">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>100 px</string>
+   </property>
+  </action>
+  <action name="actionLeft_side">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Left side</string>
+   </property>
+  </action>
+  <action name="actionRight_Side">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Right Side</string>
+   </property>
+  </action>
+  <action name="actionTop">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Top</string>
+   </property>
+  </action>
+  <action name="actionBottom">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Bottom</string>
+   </property>
+  </action>
+  <action name="actionScale_up">
+   <property name="text">
+    <string>Scale up</string>
+   </property>
+  </action>
+  <action name="actionScale_Down">
+   <property name="text">
+    <string>Scale Down</string>
+   </property>
+  </action>
+  <action name="actionExit_2">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
