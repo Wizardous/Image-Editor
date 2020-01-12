@@ -105,6 +105,11 @@ class QImageViewer(QMainWindow):
             self.fitToWindowAct.setEnabled(True)
             self.updateActions()
 
+            edit_menu_list = [self.colorMenu, self.rotateMenu, self.perspectiveMenu, self.borderMenu, self.scaleMenu]
+            for menu in edit_menu_list:
+                menu.setEnabled(True)
+
+
             if not self.fitToWindowAct.isChecked():
                 self.imageLabel.adjustSize()
 
@@ -193,11 +198,11 @@ class QImageViewer(QMainWindow):
         self.viewMenu.addAction(self.fitToWindowAct)
 
         self.editMenu = QMenu("&Edit", self)
-        self.colorMenu = QMenu("Color", self.editMenu, enabled=True)
-        self.rotateMenu = QMenu("Rotate", self.editMenu, enabled=True)
+        self.colorMenu = QMenu("Color", self.editMenu, enabled=False)
+        self.rotateMenu = QMenu("Rotate", self.editMenu, enabled=False)
         self.perspectiveMenu = QMenu("Perspective", self.editMenu, enabled=False)
-        self.borderMenu = QMenu("Border", self.editMenu, enabled=True)
-        self.scaleMenu = QMenu("Scale", self.editMenu, enabled=True)
+        self.borderMenu = QMenu("Border", self.editMenu, enabled=False)
+        self.scaleMenu = QMenu("Scale", self.editMenu, enabled=False)
         self.editMenu.addMenu(self.colorMenu)
         self.editMenu.addMenu(self.rotateMenu)
         self.editMenu.addMenu(self.perspectiveMenu)
