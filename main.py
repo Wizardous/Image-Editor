@@ -19,6 +19,7 @@ class QImageViewer(QMainWindow):
         super().__init__()
 
         self.scaleFactor = 0.0
+        self.save_path = None
 
         self.imageLabel = QLabel()
         self.imageLabel.setBackgroundRole(QPalette.Base)
@@ -68,6 +69,17 @@ class QImageViewer(QMainWindow):
         self.colorAct.setChecked(True)
         self.greyAct.setChecked(False)
 
+    def discardChanges(self):
+        self.colorAct.setChecked(True)
+        self.greyAct.setChecked(False)
+
+        self.cv_api.resetImage()
+        image = self.cv_api.getData()
+        image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
+        self.imageLabel.setPixmap(QPixmap.fromImage(image))
+        self.scaleFactor = 1.0
+        pass
+
     def rotateImage(self, direction):
         if direction == 'anti':
             self.cv_api.rotate(10)
@@ -105,7 +117,9 @@ class QImageViewer(QMainWindow):
             self.fitToWindowAct.setEnabled(True)
             self.updateActions()
 
-            edit_menu_list = [self.colorMenu, self.rotateMenu, self.perspectiveMenu, self.borderMenu, self.scaleMenu]
+            self.fitToWindow()
+
+            edit_menu_list = [self.saveAct, self.discardAct, self.colorMenu, self.rotateMenu, self.perspectiveMenu, self.borderMenu, self.scaleMenu]
             for menu in edit_menu_list:
                 menu.setEnabled(True)
 
@@ -113,6 +127,15 @@ class QImageViewer(QMainWindow):
             if not self.fitToWindowAct.isChecked():
                 self.imageLabel.adjustSize()
 
+    def save(self):
+        if self.save_path == None:
+            options = QFileDialog.Options()
+            filter = 'JPEG (*.jpg);;PNG (*.png);;Bitmap (*.bmp)'
+            self.save_path, _ = QFileDialog.getSaveFileName(self, 'Save Image', '',
+                                                            filter, options=options)
+
+        if self.save_path:
+            self.cv_api.saveImage(self.save_path)
 
     def zoomIn(self):
         self.scaleImage(1.25)
@@ -150,14 +173,14 @@ class QImageViewer(QMainWindow):
 
     def createActions(self):
         self.openAct = QAction("&Open", self, shortcut="Ctrl+O", triggered=self.open)
-        self.saveAct = QAction("&Save", self, shortcut='Ctrl+s', enabled=False)
-        self.discardAct = QAction("&Discard", self, shortcut='Ctrl+d', enabled=False)
+        self.saveAct = QAction("&Save", self, shortcut='Ctrl+s', enabled=False, triggered=self.save)
+        self.discardAct = QAction("&Discard", self, shortcut='Ctrl+d', enabled=False, triggered=self.discardChanges)
         self.exitAct = QAction("E&xit", self, shortcut="Ctrl+q", triggered=self.close)
 
         self.zoomInAct = QAction("Zoom &In (25%)", self, shortcut="Ctrl++", enabled=False, triggered=self.zoomIn)
         self.zoomOutAct = QAction("Zoom &Out (25%)", self, shortcut="Ctrl+-", enabled=False, triggered=self.zoomOut)
         self.normalSizeAct = QAction("&Normal Size", self, shortcut="Ctrl+S", enabled=False, triggered=self.normalSize)
-        self.fitToWindowAct = QAction("&Fit to Window", self, enabled=False, checkable=True, shortcut="Ctrl+F", triggered=self.fitToWindow)
+        self.fitToWindowAct = QAction("&Fit to Window", self, enabled=False, checkable=True, checked=True, shortcut="Ctrl+F", triggered=self.fitToWindow)
         
         self.greyAct = QAction("GreyScale", self, checkable=True, triggered=self.greyFormat)
         self.colorAct = QAction("Colored", self, checkable=True, checked=True, triggered=self.coloredFormat)
