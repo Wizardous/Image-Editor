@@ -73,6 +73,7 @@ class QImageViewer(QMainWindow):
         self.colorAct.setChecked(True)
         self.greyAct.setChecked(False)
 
+
         self.cv_api.resetImage()
         image = self.cv_api.getData()
         image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
@@ -86,6 +87,8 @@ class QImageViewer(QMainWindow):
         elif direction == "clock":
             self.cv_api.rotate(-10)
 
+        self.cv_api.createBorder(self.cv_api.current_border)
+
         image = self.cv_api.getData()
         if not self.cv_api.flag_grey:
             image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
@@ -95,6 +98,35 @@ class QImageViewer(QMainWindow):
         self.imageLabel.setPixmap(QPixmap.fromImage(image))
         self.scaleFactor = 1.0
 
+    def setBorderSides(self, side_list):
+        for side in self.cv_api.border_sides.keys():
+            self.cv_api.border_sides[side] = True if side in side_list else False
+
+    def createBorder(self, action, border_width):
+        if border_width != self.cv_api.current_border:
+            borderactions = [self.px_10, self.px_20, self.px_50, self.px_100]
+            for act in borderactions:
+                if act == action:
+                    act.setChecked(True)
+                else:
+                    act.setChecked(False)
+            
+            self.setBorderSides(['left', 'right', 'top', 'bottom'])
+
+            sides_list = [self.leftAct, self.rightAct, self.topAct, self.buttomAct]
+            for sideAct in sides_list:
+                sideAct.setChecked(True)
+
+            self.cv_api.createBorder(border_width)
+
+            image = self.cv_api.getData()
+            if not self.cv_api.flag_grey:
+                image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
+            else:
+                image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_Grayscale8)
+
+            self.imageLabel.setPixmap(QPixmap.fromImage(image))
+            self.scaleFactor = 1.0
 
     def open(self):
         options = QFileDialog.Options()
@@ -190,10 +222,10 @@ class QImageViewer(QMainWindow):
         self.horizontalAct = QAction("Horizontal", self, checkable=True, checked=False)
         self.increaseAct = QAction("Increase", self)
         self.decreaseAct = QAction("Decrease", self)
-        self.px_10 = QAction("10 px", self, checkable=True, checked=False)
-        self.px_20 = QAction("20 px", self, checkable=True, checked=False)
-        self.px_50 = QAction("50 px", self, checkable=True, checked=False)
-        self.px_100 = QAction("100 px", self, checkable=True, checked=False)
+        self.px_10 = QAction("10 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_10, 10))
+        self.px_20 = QAction("20 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_20, 20))
+        self.px_50 = QAction("50 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_50, 50))
+        self.px_100 = QAction("100 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_100, 100))
         self.leftAct = QAction("Left", self, checkable=True, checked=False)
         self.rightAct = QAction("Right", self, checkable=True, checked=False)
         self.topAct = QAction("Top", self, checkable=True, checked=False)
@@ -240,7 +272,7 @@ class QImageViewer(QMainWindow):
         self.perspectiveMenu.addSeparator()
         self.perspectiveMenu.addAction(self.increaseAct)
         self.perspectiveMenu.addAction(self.decreaseAct)
-        self.sizeMenu = QMenu("Color", self.borderMenu)
+        self.sizeMenu = QMenu("Size", self.borderMenu)
         self.sizeMenu.addAction(self.px_10)
         self.sizeMenu.addAction(self.px_20)
         self.sizeMenu.addAction(self.px_50)
