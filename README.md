@@ -1,6 +1,8 @@
 # Image-Editor
 A simple Python 3 application in PyQt5 for some image manipulations using CV2 Module
 
+**Note : Currently restructuring the cv2_api.py (there were some issuse), so main.py would not work temporarily! **
+
 
 #### Operations Added or planned to add:
 - Image Rotation.
