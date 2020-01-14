@@ -48,7 +48,7 @@ class QImageViewer(QMainWindow):
         return image
 
     def greyFormat(self):
-        self.cv_api.grayScale()
+        self.cv_api.setFormatGrey()
         image = self.cv_api.getData()
         image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_Grayscale8)#.rgbSwapped()
 
@@ -59,7 +59,7 @@ class QImageViewer(QMainWindow):
         self.greyAct.setChecked(True)
 
     def coloredFormat(self):
-        self.cv_api.colored()
+        self.cv_api.setFormatColor()
         image = self.cv_api.getData()
         image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
 
@@ -70,11 +70,7 @@ class QImageViewer(QMainWindow):
         self.greyAct.setChecked(False)
 
     def discardChanges(self):
-        self.colorAct.setChecked(True)
-        self.greyAct.setChecked(False)
-
-
-        self.cv_api.resetImage()
+        self.cv_api.discardData()
         image = self.cv_api.getData()
         image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
         self.imageLabel.setPixmap(QPixmap.fromImage(image))
@@ -83,11 +79,9 @@ class QImageViewer(QMainWindow):
 
     def rotateImage(self, direction):
         if direction == 'anti':
-            self.cv_api.rotate(10)
+            self.cv_api.addRotation(10)
         elif direction == "clock":
-            self.cv_api.rotate(-10)
-
-        self.cv_api.createBorder(self.cv_api.current_border)
+            self.cv_api.addRotation(-10)
 
         image = self.cv_api.getData()
         if not self.cv_api.flag_grey:
@@ -98,12 +92,27 @@ class QImageViewer(QMainWindow):
         self.imageLabel.setPixmap(QPixmap.fromImage(image))
         self.scaleFactor = 1.0
 
-    def setBorderSides(self, side_list):
-        for side in self.cv_api.border_sides.keys():
-            self.cv_api.border_sides[side] = True if side in side_list else False
+    def changeBorderSide(self):
+        sides = {'left':self.leftAct.isChecked(), 
+                 'right':self.rightAct.isChecked(),
+                 'top': self.topAct.isChecked(),
+                 'bottom': self.bottomAct.isChecked()
+                }
+        self.cv_api.addBorderSides(sides)
+        self.cv_api.addBorders()
+
+        image = self.cv_api.getData()
+        if not self.cv_api.flag_grey:
+            image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
+        else:
+            image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_Grayscale8)
+
+        self.imageLabel.setPixmap(QPixmap.fromImage(image))
+        self.scaleFactor = 1.0
+        
 
     def createBorder(self, action, border_width):
-        if border_width != self.cv_api.current_border:
+        if border_width != self.cv_api.border_size:
             borderactions = [self.px_10, self.px_20, self.px_50, self.px_100]
             for act in borderactions:
                 if act == action:
@@ -111,13 +120,14 @@ class QImageViewer(QMainWindow):
                 else:
                     act.setChecked(False)
             
-            self.setBorderSides(['left', 'right', 'top', 'bottom'])
+            self.cv_api.addBorderSides()
+            self.cv_api.changeBorderSize(border_width)
 
-            sides_list = [self.leftAct, self.rightAct, self.topAct, self.buttomAct]
+            sides_list = [self.leftAct, self.rightAct, self.topAct, self.bottomAct]
             for sideAct in sides_list:
                 sideAct.setChecked(True)
 
-            self.cv_api.createBorder(border_width)
+            self.cv_api.addBorders()
 
             image = self.cv_api.getData()
             if not self.cv_api.flag_grey:
@@ -132,15 +142,12 @@ class QImageViewer(QMainWindow):
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', '',
                                                   'Images (*.png *.jpeg *.jpg *.bmp)', options=options)
-        self.link = fileName
-
+        # self.link = fileName
         if fileName:
             image = self.getImage(fileName)
-            # image = QImage(fileName)
             if image.isNull():
                 QMessageBox.information(self, "Image Viewer", "Cannot load %s." % fileName)
                 return
-
 
             self.imageLabel.setPixmap(QPixmap.fromImage(image))
             self.scaleFactor = 1.0
@@ -226,10 +233,10 @@ class QImageViewer(QMainWindow):
         self.px_20 = QAction("20 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_20, 20))
         self.px_50 = QAction("50 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_50, 50))
         self.px_100 = QAction("100 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_100, 100))
-        self.leftAct = QAction("Left", self, checkable=True, checked=False)
-        self.rightAct = QAction("Right", self, checkable=True, checked=False)
-        self.topAct = QAction("Top", self, checkable=True, checked=False)
-        self.buttomAct = QAction("Buttom", self, checkable=True, checked=False)
+        self.leftAct = QAction("Left", self, checkable=True, checked=False, triggered=self.changeBorderSide)
+        self.rightAct = QAction("Right", self, checkable=True, checked=False, triggered=self.changeBorderSide)
+        self.topAct = QAction("Top", self, checkable=True, checked=False, triggered=self.changeBorderSide)
+        self.bottomAct = QAction("Buttom", self, checkable=True, checked=False, triggered=self.changeBorderSide)
         self.scaleUpAct = QAction("Scale Up", self)
         self.scaleDownAct = QAction("Scale Down", self)
         
@@ -281,7 +288,7 @@ class QImageViewer(QMainWindow):
         self.borderMenu.addAction(self.leftAct)
         self.borderMenu.addAction(self.rightAct)
         self.borderMenu.addAction(self.topAct)
-        self.borderMenu.addAction(self.buttomAct)
+        self.borderMenu.addAction(self.bottomAct)
         self.scaleMenu.addAction(self.scaleUpAct)
         self.scaleMenu.addAction(self.scaleDownAct)
 

@@ -75,11 +75,14 @@ class Image:
             self.__grey()
             self.flag_grey = True
 
+        self.addBorders()
+
     def setFormatColor(self):
         if self.flag_grey:
             self.__color()
             self.flag_grey = False
         self.__remake()
+        
         self.addBorders()
     
     def addRotation(self, inc_angle):
@@ -91,7 +94,7 @@ class Image:
         if new_size != self.border_size:
             self.border_size = new_size
 
-    def addBorderSides(self, new_sides):
+    def addBorderSides(self, new_sides={'left':True, 'right':True, 'top':True, 'bottom':True}):
         self.border_sides = new_sides.copy()
 
     def setBorderColor(self, color):
