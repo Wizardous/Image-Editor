@@ -19,6 +19,7 @@ class QImageViewer(QMainWindow):
         super().__init__()
 
         self.scaleFactor = 0.0
+        self.perspective = 0
         self.save_path = None
 
         self.imageLabel = QLabel()
@@ -70,12 +71,24 @@ class QImageViewer(QMainWindow):
         self.greyAct.setChecked(False)
 
     def discardChanges(self):
+
+        actionsList = [self.horizontalAct, self.verticalAct, 
+                       self.px_10, self.px_20, self.px_50, 
+                       self.px_100, self.leftAct,self.rightAct, 
+                       self.topAct, self.bottomAct
+                       ]
+        for action in actionsList:
+            action.setChecked(False)
         self.cv_api.discardData()
+        
         image = self.cv_api.getData()
-        image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
+        if not self.cv_api.flag_grey:
+            image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
+        else:
+            image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_Grayscale8)
+
         self.imageLabel.setPixmap(QPixmap.fromImage(image))
         self.scaleFactor = 1.0
-        pass
 
     def rotateImage(self, direction):
         if direction == 'anti':
@@ -110,6 +123,44 @@ class QImageViewer(QMainWindow):
         self.imageLabel.setPixmap(QPixmap.fromImage(image))
         self.scaleFactor = 1.0
         
+    def changePerspectiveOrient(self, orient):
+        if orient == 'horizontal':
+            self.verticalAct.setChecked(False)
+        if orient == 'vertical':
+            self.horizontalAct.setChecked(False)
+        self.increaseAct.setEnabled(True)
+        self.cv_api.setPerspective(orient=orient, percentage=self.perspective)
+
+        image = self.cv_api.getData()
+        if not self.cv_api.flag_grey:
+            image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_RGB888).rgbSwapped()
+        else:
+            image = QImage(image.data, image.shape[1], image.shape[0], QImage.Format_Grayscale8)
+
+        self.imageLabel.setPixmap(QPixmap.fromImage(image))
+        self.scaleFactor = 1.0
+
+    def changePerspectiveDepth(self, option):
+        if option == 'increase':
+            self.perspective += 5
+            self.decreaseAct.setEnabled(True)
+            print("inc: ", self.perspective)
+            if self.perspective >= 40:
+                self.increaseAct.setEnabled(False)
+                print("over-flow")
+        
+        elif option == 'decrease':
+            self.perspective -= 5
+            self.increaseAct.setEnabled(True)
+            print("dec: ", self.perspective)
+            if self.perspective <= 0:
+                print('underflow')
+                self.decreaseAct.setEnabled(False)
+        
+        if self.verticalAct.isChecked():
+            self.changePerspectiveOrient(orient='vertical')
+        elif self.horizontalAct.isChecked():
+            self.changePerspectiveOrient(orient='horizontal')
 
     def createBorder(self, action, border_width):
         if border_width != self.cv_api.border_size:
@@ -225,10 +276,10 @@ class QImageViewer(QMainWindow):
         self.colorAct = QAction("Colored", self, checkable=True, checked=True, triggered=self.coloredFormat)
         self.clockAct = QAction("Clockwise 10 Degree", self, triggered=lambda:self.rotateImage("clock"))
         self.antiClockAct = QAction("Anti-Clockwise 10 Degree", self, triggered=lambda:self.rotateImage("anti"))
-        self.verticalAct = QAction("Vertical", self, checkable=True, checked=True)
-        self.horizontalAct = QAction("Horizontal", self, checkable=True, checked=False)
-        self.increaseAct = QAction("Increase", self)
-        self.decreaseAct = QAction("Decrease", self)
+        self.verticalAct = QAction("Vertical", self, checkable=True, checked=False, triggered=lambda:self.changePerspectiveOrient('vertical'))
+        self.horizontalAct = QAction("Horizontal", self, checkable=True, checked=False, triggered=lambda:self.changePerspectiveOrient('horizontal'))
+        self.increaseAct = QAction("Increase", self, enabled=False, triggered=lambda:self.changePerspectiveDepth('increase'))
+        self.decreaseAct = QAction("Decrease", self, enabled=False, triggered=lambda:self.changePerspectiveDepth('decrease'))
         self.px_10 = QAction("10 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_10, 10))
         self.px_20 = QAction("20 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_20, 20))
         self.px_50 = QAction("50 px", self, checkable=True, checked=False, triggered=lambda:self.createBorder(self.px_50, 50))
@@ -239,6 +290,10 @@ class QImageViewer(QMainWindow):
         self.bottomAct = QAction("Buttom", self, checkable=True, checked=False, triggered=self.changeBorderSide)
         self.scaleUpAct = QAction("Scale Up", self)
         self.scaleDownAct = QAction("Scale Down", self)
+
+        self.blurAct = QAction("Blur", self, checkable=True, checked=False, enabled=False)
+        self.motionBlurAct = QAction("Motion Blur", self, checkable=True, checked=False, enabled=False)
+        self.sharpAct = QAction("Sharpen", self, checkable=True, checked=False, enabled=False)
         
 
         self.aboutAct = QAction("&About", self, triggered=self.about)
@@ -292,6 +347,10 @@ class QImageViewer(QMainWindow):
         self.scaleMenu.addAction(self.scaleUpAct)
         self.scaleMenu.addAction(self.scaleDownAct)
 
+        self.filterMenu = QMenu("&Filters", self)
+        self.filterMenu.addAction(self.blurAct)
+        self.filterMenu.addAction(self.motionBlurAct)
+        self.filterMenu.addAction(self.sharpAct)
 
         self.helpMenu = QMenu("&Help", self)
         self.helpMenu.addAction(self.aboutAct)
@@ -300,6 +359,7 @@ class QImageViewer(QMainWindow):
         self.menuBar().addMenu(self.fileMenu)
         self.menuBar().addMenu(self.viewMenu)
         self.menuBar().addMenu(self.editMenu)
+        self.menuBar().addMenu(self.filterMenu)
         self.menuBar().addMenu(self.helpMenu)
 
     def updateActions(self):

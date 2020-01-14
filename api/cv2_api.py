@@ -8,12 +8,18 @@ class Image:
         self.image = cv2.imread(self.filename)
         self.backup_image = cv2.imread(self.filename)
 
+        self.flag_grey = False
+
         self.angle = 0
         self.border_size = 0
         self.border_color = 255
         self.border_sides = {'left':False, 'right':False, 'top':False, 'bottom':False}
 
-        self.flag_grey = False
+        self.perspectivePercentage = 0
+        self.perspectiveOrientation = 0
+        self.corner_points = None
+        self.perspectivePoints = None
+        self.transform_matrix = None
 
     def saveImage(self, path):
         cv2.imwrite(path, self.image)
@@ -24,9 +30,13 @@ class Image:
 
     def discardData(self):
         self.angle = 0
+        self.flag_grey = False
         self.border_size = 0,
         self.border_color = 255,
         self.border_sides = {'left':False, 'right':False, 'top':False, 'bottom':False}
+        self.perspectiveOrientation = None
+        self.perspectivePercentage = 0
+        self.perspectivePoints = None
         self.__remake()
 
     def showImage(self):
@@ -44,16 +54,6 @@ class Image:
         rot_matrix = cv2.getRotationMatrix2D((num_cols/2, num_rows/2), self.angle, 1)
         self.image = cv2.warpAffine(self.image, rot_matrix, (num_cols, num_rows))
 
-    def __remake(self):
-        del self.image
-        self.image = self.backup_image.copy()
-
-        if self.flag_grey:
-            self.__grey()
-        if self.angle:
-            self.__rotate()
-        
-
     def __border(self):
         self.__remake()
         width, height= len(self.image[0]), len(self.image)
@@ -69,6 +69,59 @@ class Image:
                     if self.border_sides['right']:
                         self.image[row][width - col - 1] = self.border_color
 
+    def __makePerspectiveMatrix(self):
+
+        num_rows, num_cols = self.image.shape[:2]
+
+        self.corner_points = np.float32([[0,0],
+                                        [num_cols-1, 0],
+                                        [0, num_rows-1],
+                                        [num_cols-1, num_rows-1]]
+                                    )
+
+        per = self.perspectivePercentage
+        
+        if self.perspectiveOrientation == "vertical":
+            self.perspectivePoints = np.float32([[per*num_cols-1, 0],
+                                                 [(1-per)*num_cols-1 , 0], 
+                                                 [0, num_rows-1], 
+                                                 [num_cols-1, num_rows-1]]
+                                                )
+
+        elif self.perspectiveOrientation == "horizontal":
+            self.perspectivePoints = np.float32([[0, 0],
+                                                 [num_cols-1 , per*num_rows-1], 
+                                                 [0, num_rows-1], 
+                                                 [num_cols-1, (1-per)*num_rows-1]]
+                                                )
+        
+        self.transform_matrix = cv2.getPerspectiveTransform(self.corner_points, self.perspectivePoints)
+
+
+    def __addPerspective(self):
+        if self.perspectiveOrientation:
+            num_rows, num_cols = self.image.shape[:2]
+            self.image = cv2.warpPerspective(self.image, self.transform_matrix, (num_cols, num_rows))
+
+    def setPerspective(self, orient='vertical', percentage=10):
+        self.perspectiveOrientation = orient
+        self.perspectivePercentage = percentage/100
+        
+        self.__makePerspectiveMatrix()
+        self.__remake()
+        self.addBorders()
+
+        
+    def __remake(self):
+        del self.image
+        self.image = self.backup_image.copy()
+
+        if self.flag_grey:
+            self.__grey()
+        if self.angle:
+            self.__rotate()
+        self.__addPerspective()
+
     def setFormatGrey(self):
         self.__remake()
         if not self.flag_grey:
@@ -82,7 +135,6 @@ class Image:
             self.__color()
             self.flag_grey = False
         self.__remake()
-        
         self.addBorders()
     
     def addRotation(self, inc_angle):
@@ -107,39 +159,35 @@ class Image:
 if __name__ == "__main__":
     img = Image("E:\Python\Image Edit\Test_images\Cat_small.jpg")
     img.showImage()
-   
-    img.addRotation(-10)
+
+    img.setFormatGrey()
     img.showImage()
 
     img.addRotation(10)
-    img.showImage()
-
-    img.addBorderSides({'left':True, 'right':True, 'top':True, 'bottom':True})
-    img.changeBorderSize(20)
-    img.addBorders()
-    img.showImage()
-
-    img.addRotation(180)
     img.showImage()
 
     img.discardData()
     img.showImage()
-
-    img.setFormatGrey()
-    img.showImage()
-    '''  
-    img.addRotation(10)
-    img.showImage()
+   
 
 
-    img.addRotation(20)
-    img.showImage()
+'''
 
-    img.setFormatColor()
-    img.showImage()
 
-    img.addBorderSides({'left':True, 'right':False, 'top':False, 'bottom':True})
-    img.changeBorderSize(20)
-    img.addBorders()
-    img.showImage()
-    '''
+img.addRotation(10)
+img.showImage()
+
+img.addBorderSides({'left':True, 'right':True, 'top':True, 'bottom':True})
+img.changeBorderSize(20)
+img.addBorders()
+img.showImage()
+
+img.addRotation(180)
+img.showImage()
+
+img.discardData()
+img.showImage()
+
+img.setFormatGrey()
+img.showImage()
+'''
